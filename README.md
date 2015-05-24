@@ -1,2 +1,3 @@
-# dash
-Dash Stuff
+dash
+====
+Tools for generating [Dash](https://kapeli.com/dash) docsets.
