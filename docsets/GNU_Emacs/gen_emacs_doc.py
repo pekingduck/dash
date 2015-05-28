@@ -38,5 +38,13 @@ for page in pages.keys():
         print("{}:{}->{}".format(page, obj_name, tag['href']))
         cur.execute(sql, (obj_name, pages[page], path))
 
+
+soup = BeautifulSoup(open("{}/index.html".format(doc_dir)))
+for tag in soup.find_all('tr'):
+  for td in tag.find_all('td'):
+    for a in td.find_all('a'):
+      print(a['href'], a.string)
+      cur.execute(sql, (a.string, "Guide", a['href']))
+
 db.commit()
 db.close()

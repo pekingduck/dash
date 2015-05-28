@@ -29,15 +29,21 @@ $dbh->do(qq/CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);/);
 
 my $stmt = $dbh->prepare(qq/INSERT OR IGNORE INTO searchIndex(name, type, path) 
                            VALUES (?,?,?);/);
+my $doc_id = "elisp";
 
 shift;
 while (<>) {
   my $file = basename($ARGV);
-  if (m!<dt><a name="([^\"]+)"></a>([^:]+): <strong>([^<]+)!) {
+  if ($file eq "index.html") {
+    if (m!<tr><td><a href="([^\"]+)"[^>]*>([^<]+)</a>!) {
+      $stmt->execute($2, "Guide", "$doc_id/$1");
+    }
+  } elsif (m!<dt><a name="([^\"]+)"></a>([^:]+): <strong>([^<]+)!) {
     # print("$3,$type_map{$2},$file#$1\n");
-    $stmt->execute($3, $type_map{$2}, "$file#$1");
+    $stmt->execute($3, $type_map{$2}, "$doc_id/$file#$1");
   }
 }
+
 
 $dbh->commit();
 $dbh->disconnect();
