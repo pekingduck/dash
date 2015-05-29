@@ -6,7 +6,7 @@ import sys
 import os.path
 
 res_dir = sys.argv[1]
-doc_id = "emacs"
+doc_id = "autoconf"
 
 db = sqlite3.connect("{}/docSet.dsidx".format(res_dir))
 cur = db.cursor()
@@ -16,17 +16,23 @@ except: pass
 cur.execute('CREATE TABLE searchIndex(id INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT);')
 cur.execute('CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);')
 
-pages = { "Command" : "Function",
-          "Key" : "Command",
-          "Variable" : "Variable",
-          "Option" : "Option" }
+pages = {
+  "Environment-Variable-Index.html" : "Variable",
+  "Output-Variable-Index.html" : "Variable",
+  "Preprocessor-Symbol-Index.html" : "Macro",
+  "Cache-Variable-Index.html" : "Variable",
+  "Autoconf-Macro-Index.html" :  "Macro",
+  "M4-Macro-Index.html" : "Macro",
+  "Autotest-Macro-Index.html" : "Macro"
+}
+
 
 sql = 'INSERT OR IGNORE INTO searchIndex(name, type, path) VALUES (?,?,?)'
 
 doc_dir = "{}/Documents/{}".format(res_dir, doc_id)
 
 for page in pages.keys():
-  soup = BeautifulSoup(open("{}/{}-Index.html".format(doc_dir, page)))
+  soup = BeautifulSoup(open("{}/{}".format(doc_dir, page)))
   for tag in soup.find_all('a'):
     for ct in tag.contents:
       if ct.name == "code":
@@ -37,14 +43,6 @@ for page in pages.keys():
           obj_name = ct.contents[0].string + ct.contents[1].string
         print("{}:{}->{}".format(page, obj_name, tag['href']))
         cur.execute(sql, (obj_name, pages[page], path))
-
-
-soup = BeautifulSoup(open("{}/index.html".format(doc_dir)))
-for tag in soup.find_all('tr'):
-  for td in tag.find_all('td'):
-    for a in td.find_all('a'):
-      print(a['href'], a.string)
-      cur.execute(sql, (a.string, "Guide", doc_id + "/" + a['href']))
 
 db.commit()
 db.close()
